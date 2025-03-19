@@ -15,7 +15,7 @@
 
 //   return (
 //     <div className="w-full h-full mx-auto bg-white p-2 rounded-lg">
-//       <div className="text-white bg-gradient-to-r from-gray-500 to-gray-800 p-3 rounded-t-lg justify-center flex"> 
+//       <div className="text-white bg-gradient-to-r from-gray-500 to-gray-800 p-3 rounded-t-lg justify-center flex">
 //         <h1 className="font-bold">Port Details/Schedule</h1>
 //       </div>
 //       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
@@ -68,14 +68,21 @@
 //   );
 // }
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { useDispatch } from "react-redux";
 import { addProfile } from "./profileSlice";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const schema = z.object({
   shippingLine: z.string().nonempty({ message: "Shipping Line is required" }),
@@ -84,7 +91,9 @@ const schema = z.object({
   ourReference: z.string().optional(),
   validityDate: z.string().nonempty({ message: "Validity Date is required" }),
   pdfPickupLocation: z.string().optional(),
-  pickupLocation: z.string().nonempty({ message: "Pickup Location is required" }),
+  pickupLocation: z
+    .string()
+    .nonempty({ message: "Pickup Location is required" }),
   pickupDate: z.string().nonempty({ message: "Pickup Date is required" }),
 });
 
@@ -103,7 +112,12 @@ export default function ProfileForm() {
     },
   });
 
-  const { handleSubmit, control, formState: { errors }, reset } = methods;
+  const {
+    handleSubmit,
+    control,
+    formState: { errors },
+    reset,
+  } = methods;
   const dispatch = useDispatch();
 
   const onSubmit = (data) => {
@@ -112,47 +126,90 @@ export default function ProfileForm() {
     reset();
   };
 
+  const location = useLocation();
+
+  const activeIndex = location.pathname === "/" ? 0 : 1;
+
   return (
     <div className="w-full h-full mx-auto bg-white p-2 rounded-lg">
-      <div className="text-white bg-gradient-to-r from-gray-500 to-gray-800 p-3 rounded-t-lg justify-center flex"> 
+      <div className="relative w-fit max-w-md ">
+        <div className="flex space-x-4  bg-gray-100 m-2 rounded-lg relative overflow-hidden">
+          <Link
+            to="/"
+            className={`relative px-4 py-2  transition-all duration-300 rounded-lg z-10 ${
+              activeIndex === 0 ? "text-white" : ""
+            }`}
+          >
+            Form
+          </Link>
+          <Link
+            to="/data-table"
+            className={`relative px-4 py-2 text-gray-700 transition-all duration-300 rounded-lg z-10 ${
+              activeIndex === 1 ? "text-white" : ""
+            }`}
+          >
+            Table
+          </Link>
+          <div
+            className="absolute bottom-0 left-0 w-20 h-10 bg-gray-800 rounded-lg transition-all duration-300 z-0"
+            style={{ transform: `translateX(${activeIndex * 100}%)` }}
+          ></div>
+        </div>
+      </div>
+
+      <div className="text-white bg-gradient-to-r from-gray-500 to-gray-800 p-3 rounded-t-lg justify-center flex">
         <h1 className="font-bold">Port Details/Schedule</h1>
       </div>
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <div className="grid grid-cols-3 gap-4">
-            {[
-              { name: "shippingLine", label: "Shipping Line" },
-              { name: "ExistingBookingNumber", label: "Existing Booking Number" },
-              { name: "bookingNumber", label: "Booking Number" },
-              { name: "ourReference", label: "Our Reference" },
-              { name: "validityDate", label: "Validity Date", type: "date" },
-              { name: "pdfPickupLocation", label: "Pickup Location (PDF Extraction)", type: "textarea" },
-              { name: "pickupLocation", label: "Pickup Location" },
-              { name: "pickupDate", label: "Pickup Date", type: "date" },
-            ].map(({ name, label, type }) => (
-              <FormField
-                key={name}
-                control={control}
-                name={name}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{label}</FormLabel>
-                    <FormControl>
-                      {type === "textarea" ? (
-                        <textarea {...field} className="p-2 m-2 border-gray-250 border rounded-lg" />
-                      ) : (
-                        <input type={type || "text"} {...field} className="p-2 m-2 border-gray-250 border rounded-lg" />
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ))}
+          {[
+  { name: "shippingLine", label: "Shipping Line", required: true },
+  { name: "ExistingBookingNumber", label: "Existing Booking Number", required: false },
+  { name: "bookingNumber", label: "Booking Number", required: true },
+  { name: "ourReference", label: "Our Reference", required: false },
+  { name: "validityDate", label: "Validity Date", type: "date", required: true },
+  { name: "pdfPickupLocation", label: "Pickup Location (PDF Extraction)", type: "textarea", required: false },
+  { name: "pickupLocation", label: "Pickup Location", required: true },
+  { name: "pickupDate", label: "Pickup Date", type: "date", required: true },
+].map(({ name, label, type, required }) => (
+  <FormField
+    key={name}
+    control={control}
+    name={name}
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>
+          {label} {required && <span className="text-red-500">*</span>}
+        </FormLabel>
+        <FormControl>
+          {type === "textarea" ? (
+            <textarea
+              {...field}
+              className="p-2 m-2 border-gray-250 border rounded-lg"
+            />
+          ) : (
+            <input
+              type={type || "text"}
+              {...field}
+              className="p-2 m-2 border-gray-250 border rounded-lg"
+            />
+          )}
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+))}
           </div>
           <div className="flex justify-center items-center">
-            <button type="submit" className="cursor-pointer border-gray-250 border rounded-lg px-3 py-2 bg-gradient-to-l from-gray-500 to-gray-800 text-white">Submit</button>
-            <Link to='/data-table'>hiiiii</Link>
+            <button
+              type="submit"
+              className="cursor-pointer border-gray-250 border rounded-lg px-3 py-2 bg-gradient-to-l from-gray-500 to-gray-800 text-white"
+            >
+              Submit
+            </button>
+            
           </div>
         </form>
       </FormProvider>
