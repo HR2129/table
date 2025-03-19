@@ -83,6 +83,9 @@ import {
 import { useDispatch } from "react-redux";
 import { addProfile } from "./profileSlice";
 import { Link, useLocation } from "react-router-dom";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input"
+
 
 const schema = z.object({
   shippingLine: z.string().nonempty({ message: "Shipping Line is required" }),
@@ -127,42 +130,45 @@ export default function ProfileForm() {
   };
 
   const location = useLocation();
+  const [activeTab, setActiveTab] = useState(
+    location.pathname === "/data-table" ? "table" : "form"
+  );
 
-  const activeIndex = location.pathname === "/" ? 0 : 1;
+  
 
   return (
     <div className="w-full h-full mx-auto bg-white p-2 rounded-lg">
-      <div className="relative w-fit max-w-md ">
-        <div className="flex space-x-4  bg-gray-100 m-2 rounded-lg relative overflow-hidden">
-          <Link
-            to="/"
-            className={`relative px-4 py-2  transition-all duration-300 rounded-lg z-10 ${
-              activeIndex === 0 ? "text-white" : ""
-            }`}
+      <div className="relative w-fit max-w-md m-2">
+      <Tabs
+        value={activeTab}
+        onValueChange={(val) => setActiveTab(val)}
+        className="w-full max-w-md"
+      >
+        <TabsList className="bg-gray-200 p-2 rounded-lg flex space-x-4 relative">
+          <TabsTrigger
+            value="form"
+            className="px-4 py-3 transition-all duration-300 rounded-lg"
           >
-            Form
-          </Link>
-          <Link
-            to="/data-table"
-            className={`relative px-4 py-2 text-gray-700 transition-all duration-300 rounded-lg z-10 ${
-              activeIndex === 1 ? "text-white" : ""
-            }`}
+            <Link to="/">Form</Link>
+          </TabsTrigger>
+          <TabsTrigger
+            value="table"
+            className="px-4 py-3 transition-all duration-300 rounded-lg"
           >
-            Table
-          </Link>
-          <div
-            className="absolute bottom-0 left-0 w-20 h-10 bg-gray-800 rounded-lg transition-all duration-300 z-0"
-            style={{ transform: `translateX(${activeIndex * 100}%)` }}
-          ></div>
-        </div>
+            <Link to="/data-table">Table</Link>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
       </div>
+
+      
 
       <div className="text-white bg-gradient-to-r from-gray-500 to-gray-800 p-3 rounded-t-lg justify-center flex">
         <h1 className="font-bold">Port Details/Schedule</h1>
       </div>
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid lg:grid-cols-3 md:grid-cols-2 max-sm:grid-cols-1 gap-4">
           {[
   { name: "shippingLine", label: "Shipping Line", required: true },
   { name: "ExistingBookingNumber", label: "Existing Booking Number", required: false },
@@ -189,7 +195,7 @@ export default function ProfileForm() {
               className="p-2 m-2 border-gray-250 border rounded-lg"
             />
           ) : (
-            <input
+            <Input
               type={type || "text"}
               {...field}
               className="p-2 m-2 border-gray-250 border rounded-lg"
